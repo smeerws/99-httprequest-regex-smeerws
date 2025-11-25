@@ -68,11 +68,11 @@ public class TeacherScraper : MonoBehaviour
     /// </summary>
     private IEnumerable<TeacherLink> ParseTeacherLinks(string html)
     {
-        // Sehr vereinfachte Regex:
-        // href="/lehrerinnen-details/IRGENDWAS.html">ANZEIGENAME</a>
+        // Sucht:
+        // <a class="value" href="/lehrerinnen-details/...html"> ... <span class="text">NAME</span> ... </a>
         var regex = new Regex(
-            "href=\"(/lehrerinnen-details/[^\"]+\\.html)\"[^>]*>([^<]+)</a>",
-            RegexOptions.IgnoreCase);
+            "href=\"(/lehrerinnen-details/[^\"]+\\.html)\"[^>]*>.*?<span class=\"text\">([^<]+)</span>",
+            RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
         var matches = regex.Matches(html);
 
@@ -80,8 +80,8 @@ public class TeacherScraper : MonoBehaviour
         {
             if (m.Groups.Count < 3) continue;
 
-            string url = m.Groups[1].Value;
-            string name = m.Groups[2].Value.Trim();
+            string url = m.Groups[1].Value;          // /lehrerinnen-details/...
+            string name = m.Groups[2].Value.Trim();  // z.B. "Landertshamer Franz, ..."
 
             yield return new TeacherLink
             {
@@ -90,6 +90,7 @@ public class TeacherScraper : MonoBehaviour
             };
         }
     }
+
 
     private async Task FetchTeacherDetailAsync(TeacherLink teacher)
     {
